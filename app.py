@@ -143,40 +143,40 @@ class VoyageAIApp:
                         st.rerun()
     
     def _render_dna_results(self):
-    # Retrieve from session state
-    profile = st.session_state.get('user_profile')
-    if not profile: return
+        # Retrieve from session state
+        profile = st.session_state.get('user_profile')
+        if not profile: return
 
-    personality = profile['personality_type']
+        personality = profile['personality_type']
     
-    # Designer Header
-    st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; border-left: 5px solid #636efa;">
-            <h2 style="margin:0;">✨ Your Travel DNA: {personality}</h2>
-            <p style="color: #64748b;">Match Confidence: <b>{profile['match_score']}%</b></p>
-        </div>
-    """, unsafe_allow_html=True)
+        # Designer Header
+        st.markdown(f"""
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; border-left: 5px solid #636efa;">
+                <h2 style="margin:0;">✨ Your Travel DNA: {personality}</h2>
+                <p style="color: #64748b;">Match Confidence: <b>{profile['match_score']}%</b></p>
+            </div>
+        """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        # Personality Details
-        info = TRAVEL_PERSONALITIES.get(personality, {})
-        st.write(f"**Traits:** {info.get('traits')}")
-        st.write(f"**Style:** {info.get('style')}")
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            # Personality Details
+            info = TRAVEL_PERSONALITIES.get(personality, {})
+            st.write(f"**Traits:** {info.get('traits')}")
+            st.write(f"**Style:** {info.get('style')}")
         
-    with col2:
-        dims = profile['dimensions']
-        fig = go.Figure(data=go.Scatterpolar(
-            r=[dims['adventure'], dims['comfort'], dims['culture'], dims['luxury'], dims['nature']],
-            theta=['Adventure', 'Comfort', 'Culture', 'Luxury', 'Nature'],
-            fill='toself'
-        ))
-        fig.update_layout(height=250, margin=dict(l=20,r=20,t=20,b=20), polar=dict(radialaxis=dict(visible=True, range=[0, 10])))
-        st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            dims = profile['dimensions']
+            fig = go.Figure(data=go.Scatterpolar(
+                r=[dims['adventure'], dims['comfort'], dims['culture'], dims['luxury'], dims['nature']],
+                theta=['Adventure', 'Comfort', 'Culture', 'Luxury', 'Nature'],
+                fill='toself'
+            ))
+            fig.update_layout(height=250, margin=dict(l=20,r=20,t=20,b=20), polar=dict(radialaxis=dict(visible=True, range=[0, 10])))
+            st.plotly_chart(fig, use_container_width=True)
 
 
-    if st.button("🚀 Perfect! Now Plan My Trip"):
-        st.info("Switch to 'Trip Planner' tab above to continue!")
+        if st.button("🚀 Perfect! Now Plan My Trip"):
+            st.info("Switch to 'Trip Planner' tab above to continue!")
     
     def _render_quiz_progress(self):
         """Render quiz progress indicator"""
