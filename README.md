@@ -89,5 +89,5 @@ graph TD
     B --> C{Confidence Engine}
     C -->|Budget/Weather| D[Recommendation Core]
     C -->|DNA Match| D
-    D --> E[AI]
+    D --> E[VoyageAI]
     E --> F[Personalized Confidence Report]
