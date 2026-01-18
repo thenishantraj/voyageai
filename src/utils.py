@@ -18,11 +18,12 @@ def load_css():
         st.warning("Custom CSS file not found. Using default styles.")
 
 def display_glass_card(title: str, content: str, height: str = "auto"):
+    clean_content = content.replace("**", "")
     """Display a glassmorphism-styled card"""
     st.markdown(f"""
     <div class="glass-card" style="height: {height};">
         <div class="card-title">{title}</div>
-        <div>{content}</div>
+        <div>{clean_content}</div>
     </div>
     """, unsafe_allow_html=True)
 
