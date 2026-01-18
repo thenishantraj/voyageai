@@ -89,5 +89,5 @@ graph TD
     B --> C{Confidence Engine}
     C -->|Budget/Weather| D[Recommendation Core]
     C -->|DNA Match| D
-    D --> E[Google Gemini AI]
+    D --> E[AI]
     E --> F[Personalized Confidence Report]
