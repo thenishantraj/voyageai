@@ -52,21 +52,6 @@ A high-performance interface built with Streamlit and custom CSS, featuring smoo
 
 ---
 
-## 📁 Project Structure
-
-```text
-voyageai/
-├── app.py                
-├── styles.css            
-├── src/
-│   ├── travel_dna.py     
-│   ├── recommendation.py 
-│   ├── gemini_client.py  
-│   └── synthetic_data.py 
-└── .streamlit/
-    └── config.toml
-
-
 # VoyageAI 🧭
 
 > Confidence-First Travel Discovery Platform
@@ -104,4 +89,19 @@ Unlike traditional search engines, VoyageAI uses human psychology to help users 
 - Responsive and accessible design
 
 ## 🏗️ Architecture
- 
+
+
+## 📁 Project Structure
+
+```text
+voyageai/
+├── app.py                
+├── styles.css            
+├── src/
+│   ├── travel_dna.py     
+│   ├── recommendation.py 
+│   ├── gemini_client.py  
+│   └── synthetic_data.py 
+└── .streamlit/
+    └── config.toml
+
