@@ -13,33 +13,33 @@ In a world of information overload, travelers are paralyzed by too many options.
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
-### 🧬 Travel DNA Profiling
+###  Travel DNA Profiling
 - **Psychological Assessment**: An 8-question deep-dive into the user's travel psyche.
 - **Archetype Mapping**: Classification into 7 distinct personalities (e.g., Adventure Seeker, Luxury Escapist).
 - **Dimension Analysis**: 5-dimensional mapping of Adventure, Comfort, Culture, Luxury, and Nature.
 - **Real-time Personalization**: Dynamic UI adjustments based on the user's unique DNA.
 
-### 🎯 Confidence Scoring Engine
+###  Confidence Scoring Engine
 - **Multi-Factor Algorithm**: A sophisticated model weighing Budget, Weather, Crowds, and DNA Match.
 - **Weighted Geometric Mean**: A balanced scoring system that penalizes poor-fit factors to ensure high-quality matches.
 - **Timing Intelligence**: Seasonal optimization and real-time suitability analysis.
 - **Explainable Metrics**: Complete transparency through detailed scoring breakdowns.
 
-### 🤖 AI-Powered Explanations (XAI)
+###  AI-Powered Explanations (XAI)
 - **Personalized Justifications**: Integrated with **Google Gemini** to explain *why* a trip fits your specific DNA.
 - **Regret Preview**: A unique feature that proactively manages trade-offs to reduce post-booking anxiety.
 - **Comparative Intelligence**: Side-by-side psychological analysis of multiple destinations.
 
-### 🎨 Premium User Experience
+###  Premium User Experience
 - **Glassmorphism Design**: A futuristic, semi-transparent UI inspired by high-end fintech apps.
 - **Micro-Interactions**: Custom animations and smooth transitions using CSS3.
 - **Responsive Layout**: A mobile-first, professional interface that works on any device.
 
 ---
 
-## 🏗️ Technical Architecture
+##  Technical Architecture
 
 
 
