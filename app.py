@@ -134,55 +134,49 @@ class VoyageAIApp:
                     if st.form_submit_button(submit_label):
                         st.session_state.user_responses[q["id"]] = selected
                         st.session_state.current_step += 1
-                        
-                        if st.session_state.current_step == len(questions):
-                            st.session_state.quiz_completed = True
-                            self.user_profile = self.dna_profiler.analyze_responses(st.session_state.user_responses)
+    
+                    if st.session_state.current_step >= len(questions):
+                        st.session_state.quiz_completed = True
+                        # Analyze and store in session_state so it persists across reruns
+                        st.session_state.user_profile = self.dna_profiler.analyze_responses(st.session_state.user_responses)
+                        st.balloons() # Success celebration!
                         st.rerun()
     
     def _render_dna_results(self):
-        """Render Travel DNA analysis results"""
-        if not self.user_profile:
-            return
-            
-        personality = self.user_profile['personality_type']
-        personality_info = TRAVEL_PERSONALITIES.get(personality, {})
+    # Retrieve from session state
+    profile = st.session_state.get('user_profile')
+    if not profile: return
+
+    personality = profile['personality_type']
+    
+    # Designer Header
+    st.markdown(f"""
+        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; border-left: 5px solid #636efa;">
+            <h2 style="margin:0;">✨ Your Travel DNA: {personality}</h2>
+            <p style="color: #64748b;">Match Confidence: <b>{profile['match_score']}%</b></p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        # Personality Details
+        info = TRAVEL_PERSONALITIES.get(personality, {})
+        st.write(f"**Traits:** {info.get('traits')}")
+        st.write(f"**Style:** {info.get('style')}")
         
-        display_glass_card(
-            title=f"✨ Your Travel DNA: {personality}",
-            content=f"""
-            **Primary Traits**: {personality_info.get('traits', '')}
-            
-            **Travel Style**: {personality_info.get('style', '')}
-            
-            **Perfect For**: {personality_info.get('perfect_for', '')}
-            
-            **DNA Match Score**: {self.user_profile['match_score']}%
-            """
-        )
-        
-        # Visualize personality dimensions
-        dimensions = self.user_profile['dimensions']
+    with col2:
+        dims = profile['dimensions']
         fig = go.Figure(data=go.Scatterpolar(
-            r=[dimensions['adventure'], dimensions['comfort'], dimensions['culture'], 
-               dimensions['luxury'], dimensions['nature']],
+            r=[dims['adventure'], dims['comfort'], dims['culture'], dims['luxury'], dims['nature']],
             theta=['Adventure', 'Comfort', 'Culture', 'Luxury', 'Nature'],
-            fill='toself',
-            line_color='#636efa'
+            fill='toself'
         ))
-        
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 10]
-                )),
-            showlegend=False,
-            height=300,
-            margin=dict(l=20, r=20, t=20, b=20)
-        )
-        
+        fig.update_layout(height=250, margin=dict(l=20,r=20,t=20,b=20), polar=dict(radialaxis=dict(visible=True, range=[0, 10])))
         st.plotly_chart(fig, use_container_width=True)
+
+
+    if st.button("🚀 Perfect! Now Plan My Trip"):
+        st.info("Switch to 'Trip Planner' tab above to continue!")
     
     def _render_quiz_progress(self):
         """Render quiz progress indicator"""
