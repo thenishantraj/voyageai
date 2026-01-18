@@ -64,4 +64,44 @@ voyageai/
 │   ├── gemini_client.py  
 │   └── synthetic_data.py 
 └── .streamlit/
-    └── config.toml       
+    └── config.toml
+
+
+# VoyageAI 🧭
+
+> Confidence-First Travel Discovery Platform
+
+VoyageAI is a psychologically-informed travel platform that eliminates decision anxiety through personalized Travel DNA profiling and confidence scoring. Built for VOYAGEHACK 3.0.
+
+## 🎯 Project Vision
+
+Unlike traditional search engines, VoyageAI uses human psychology to help users *decide*, not just search. Our "Confidence-First" approach analyzes 7 psychological dimensions to match travelers with destinations that truly resonate with their personality.
+
+## ✨ Key Features
+
+### 🧬 Travel DNA Profiling
+- 8-question psychological assessment
+- 7 distinct travel personality archetypes
+- 5-dimensional psychological mapping
+- Real-time personality matching
+
+### 🎯 Confidence Scoring Engine
+- Multi-factor algorithm (budget, weather, crowds, DNA match)
+- Weighted geometric mean for balanced scoring
+- Seasonal optimization and timing intelligence
+- Detailed breakdown of scoring factors
+
+### 🤖 AI-Powered Explanations
+- Google Gemini integration for personalized justifications
+- "Regret Preview" to manage trade-offs proactively
+- Comparative analysis between destinations
+- Psychological insights into travel choices
+
+### 🎨 Premium User Experience
+- Glassmorphism design system
+- Custom animations and micro-interactions
+- Professional fintech-grade interface
+- Responsive and accessible design
+
+## 🏗️ Architecture
+ 
