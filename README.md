@@ -56,12 +56,12 @@ A high-performance interface built with Streamlit and custom CSS, featuring smoo
 
 ```text
 voyageai/
-├── app.py                # Main Streamlit Entry Point
-├── styles.css            # Custom Premium Design System
+├── app.py                
+├── styles.css            
 ├── src/
-│   ├── travel_dna.py     # Psychological Profiling Logic
-│   ├── recommendation.py # Confidence Scoring Engine
-│   ├── gemini_client.py  # LLM Integration & Prompt Engineering
-│   └── synthetic_data.py # 25+ Global Destination Dataset
+│   ├── travel_dna.py     
+│   ├── recommendation.py 
+│   ├── gemini_client.py  
+│   └── synthetic_data.py 
 └── .streamlit/
-    └── config.toml       # Theming and Configuration
+    └── config.toml       
