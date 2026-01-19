@@ -472,12 +472,21 @@ class VoyageAIApp:
         with tab3:
             self.render_destination_explorer()
         
-        # Footer
+        # Footer Section
         st.markdown("---")
         st.markdown("""
-        <div class="footer">
-            <p>VoyageAI | Confidence-First Travel Discovery • Built for VOYAGEHACK 3.0</p>
-            <p class="footer-note">Using psychological profiling to eliminate decision anxiety since 2024</p>
+        <div class="footer" style="text-align: center; padding: 2rem; color: #64748b;">
+            <p style="margin-bottom: 0.5rem;"><b>VoyageAI</b> | Confidence-First Travel Discovery</p>
+            <p class="footer-note" style="font-size: 0.85rem; margin-bottom: 1rem;">
+                Using psychological profiling to eliminate decision anxiety since 2026
+            </p>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 1rem;">
+                <span>Built by <b>Nishant Raj</b></span>
+                <a href="https://www.linkedin.com/in/the-nishant-raj-82972b208/" target="_blank" style="text-decoration: none; color: #0077b5; display: flex; align-items: center; gap: 5px;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="20" height="20">
+                </a>
+            </div>
+            <p style="font-size: 0.75rem; margin-top: 1rem; opacity: 0.6;">Built for VOYAGEHACK 3.0</p>
         </div>
         """, unsafe_allow_html=True)
 
