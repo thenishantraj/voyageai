@@ -486,7 +486,6 @@ class VoyageAIApp:
                     <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="20" height="20">
                 </a>
             </div>
-            <p style="font-size: 0.75rem; margin-top: 1rem; opacity: 0.6;">Built for VOYAGEHACK 3.0</p>
         </div>
         """, unsafe_allow_html=True)
 
