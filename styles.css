@@ -1,0 +1,232 @@
+/* ================= ROOT VARIABLES ================= */
+
+:root {
+  --primary-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --secondary-gradient: linear-gradient(135deg, #ec4899, #f97316);
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.15);
+  --shadow-hard: 0 25px 60px rgba(0, 0, 0, 0.25);
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --transition: all 0.35s ease;
+}
+
+/* ================= APP BACKGROUND ================= */
+
+.stApp {
+  background: radial-gradient(
+    circle at top,
+    #1f2933 0%,
+    #0f172a 45%,
+    #020617 100%
+  );
+  min-height: 100vh;
+}
+
+/* ================= HERO SECTION ================= */
+
+.hero-container {
+  background: linear-gradient(
+    120deg,
+    rgba(99, 102, 241, 0.15),
+    rgba(236, 72, 153, 0.15),
+    rgba(249, 115, 22, 0.15)
+  );
+  backdrop-filter: blur(16px);
+  border-radius: 28px;
+  border: 1px solid var(--glass-border);
+  padding: 4rem 2rem;
+  margin: 2rem 0;
+  text-align: center;
+  animation: gradientShift 18s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-title {
+  font-size: 3.6rem;
+  font-weight: 900;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-text {
+  background: var(--secondary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ================= GLASS CARDS ================= */
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px);
+  border-radius: 18px;
+  border: 1px solid var(--glass-border);
+  padding: 1.6rem;
+  box-shadow: var(--shadow-soft);
+  transition: var(--transition);
+  height: 100%;
+}
+
+.glass-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: var(--shadow-hard);
+}
+
+/* ================= SECTION HEADERS ================= */
+
+.section-header {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 2rem 0 1.5rem;
+  border-left: 4px solid;
+  border-image: var(--primary-gradient) 1;
+  padding-left: 0.8rem;
+}
+
+/* ================= DESTINATION EXPLORER GRID ================= */
+
+.destination-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.destination-card {
+  height: 100%;
+}
+
+/* ================= CONFIDENCE BADGE ================= */
+
+.confidence-badge {
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  border: 2px solid;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 rgba(99, 102, 241, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.7); }
+  100% { box-shadow: 0 0 0 rgba(99, 102, 241, 0.4); }
+}
+
+/* ================= METRIC CARDS ================= */
+
+.metric-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  padding: 1rem;
+  transition: var(--transition);
+}
+
+.metric-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-3px);
+}
+
+/* ================= AI EXPLANATION ================= */
+
+.ai-explanation {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.1),
+    rgba(236, 72, 153, 0.1)
+  );
+  border-left: 4px solid #6366f1;
+  padding: 1.4rem;
+  border-radius: 14px;
+}
+
+/* ================= BUTTONS ================= */
+
+.stButton > button {
+  background: var(--primary-gradient);
+  border: none;
+  color: white;
+  padding: 0.75rem 2.2rem;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.stButton > button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hard);
+}
+
+/* ================= FOOTER ================= */
+
+.footer {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .hero-title { font-size: 2.4rem; }
+  .destination-grid { grid-template-columns: 1fr; }
+}
+/* ================= JOURNEY PROFILE POLISH ================= */
+
+.progress-container {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.18),
+    rgba(236, 72, 153, 0.15)
+  );
+  backdrop-filter: blur(18px);
+  border-radius: 22px;
+  padding: 1.8rem 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+.progress-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #e5e7eb;
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #6366f1,
+    #8b5cf6,
+    #ec4899
+  );
+  border-radius: 999px;
+  box-shadow: 0 0 18px rgba(99, 102, 241, 0.7);
+  transition: width 0.6s ease;
+}
+
+.progress-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #c7d2fe;
+  opacity: 0.95;
+}
