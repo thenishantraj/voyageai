@@ -19,6 +19,8 @@ from src.recommendation_engine import ConfidenceEngine
 from src.gemini_client import GeminiExplainer
 from src.synthetic_data import generate_destinations, DESTINATION_CATEGORIES
 from src.utils import load_css, display_glass_card, format_currency
+import database as db
+from auth import render_login_signup, render_logout, check_authentication
 
 # Page configuration
 st.set_page_config(
@@ -48,13 +50,80 @@ class VoyageAIApp:
             st.session_state.user_responses = {}
         if 'current_step' not in st.session_state:
             st.session_state.current_step = 0
+        if 'quiz_started' not in st.session_state:
+            st.session_state.quiz_started = False
+        if 'authenticated' not in st.session_state:
+            st.session_state.authenticated = False
+            
+        # Load user data if authenticated
+        if st.session_state.get('authenticated', False):
+            self._load_user_data()
+    
+    def _load_user_data(self):
+        """Load user's saved data from database"""
+        user_id = st.session_state.user_id
+        
+        # Load latest profile
+        profile = db.get_latest_user_profile(user_id)
+        if profile:
+            self.user_profile = {
+                'personality_type': profile['personality_type'],
+                'match_score': profile['match_score'],
+                'dimensions': profile['dimensions'],
+                'personality_details': TRAVEL_PERSONALITIES.get(profile['personality_type'], {})
+            }
+            st.session_state.quiz_completed = True
+        
+        # Load latest preferences
+        preferences = db.get_latest_user_preferences(user_id)
+        if preferences:
+            st.session_state.user_responses = preferences
+    
+    def _save_user_data(self):
+        """Save user's data to database"""
+        if not st.session_state.get('authenticated', False):
+            return
+        
+        user_id = st.session_state.user_id
+        
+        # Save profile if exists
+        if self.user_profile:
+            db.save_user_profile(
+                user_id,
+                self.user_profile['personality_type'],
+                self.user_profile['match_score'],
+                self.user_profile['dimensions']
+            )
+        
+        # Save preferences
+        if st.session_state.user_responses:
+            db.save_user_preferences(user_id, st.session_state.user_responses)
+        
+        # Save recommendations if exists
+        if self.recommendations:
+            user_prefs = self._get_current_preferences()
+            db.save_recommendations(user_id, self.recommendations[:3], user_prefs)
+    
+    def _get_current_preferences(self):
+        """Get current trip preferences from session state"""
+        # This would collect the current trip planner inputs
+        # You can expand this based on your needs
+        return {
+            'timestamp': datetime.now().isoformat(),
+            'has_recommendations': bool(self.recommendations)
+        }
     
     def render_hero_section(self):
         """Render the hero section with glassmorphism effect"""
-        st.markdown("""
+        if st.session_state.get('authenticated', False):
+            welcome_msg = f"Welcome back, {st.session_state.username}! 👋"
+        else:
+            welcome_msg = "Discover Your Next Journey with Confidence"
+            
+        st.markdown(f"""
         <div class="hero-container">
             <div class="hero-content">
-                <h1 class="hero-title">Discover Your Next Journey with <span class="gradient-text">Confidence</span></h1>
+                <h1 class="hero-title">{welcome_msg}</h1>
                 <p class="hero-subtitle">VoyageAI uses psychological profiling to eliminate decision anxiety and match you with destinations that truly resonate</p>
                 <div class="hero-stats">
                     <div class="stat">
@@ -74,21 +143,80 @@ class VoyageAIApp:
         </div>
         """, unsafe_allow_html=True)
     
+    def _handle_quiz_navigation(self, direction, questions, current_q):
+        """Handle quiz navigation with single-click fix"""
+        if direction == "next":
+            # Save current response
+            question_id = current_q["id"]
+            response_key = f"q_{st.session_state.current_step}"
+            
+            # Get response based on question type
+            if current_q["type"] == "multiple_choice":
+                response = st.session_state.get(response_key)
+            elif current_q["type"] == "slider":
+                response = st.session_state.get(response_key, 5)
+            elif current_q["type"] == "selectbox":
+                response = st.session_state.get(response_key)
+            
+            if response:
+                st.session_state.user_responses[question_id] = response
+                
+                # Move to next question
+                if st.session_state.current_step < len(questions) - 1:
+                    st.session_state.current_step += 1
+                else:
+                    # Complete quiz
+                    st.session_state.quiz_completed = True
+                    self.user_profile = self.dna_profiler.analyze_responses(
+                        st.session_state.user_responses
+                    )
+                    # Save to database
+                    self._save_user_data()
+            else:
+                st.warning("Please answer the question before proceeding.")
+                
+        elif direction == "previous":
+            if st.session_state.current_step > 0:
+                st.session_state.current_step -= 1
+        
+        st.rerun()
+    
     def render_travel_dna_quiz(self):
         """Render the interactive Travel DNA quiz"""
         with st.container():
-            st.markdown('<div class="section-header">📊 Discover Your Travel DNA</div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-header">🧬 Discover Your Travel DNA</div>', unsafe_allow_html=True)
             
             col1, col2 = st.columns([2, 1])
             
             with col1:
-                if not st.session_state.quiz_completed:
+                if not st.session_state.quiz_started and not st.session_state.quiz_completed:
+                    self._render_quiz_start()
+                elif not st.session_state.quiz_completed:
                     self._render_quiz_questions()
                 else:
                     self._render_dna_results()
             
             with col2:
                 self._render_quiz_progress()
+    
+    def _render_quiz_start(self):
+        """Render quiz start screen"""
+        display_glass_card(
+            title="Ready to Discover Your Travel DNA?",
+            content="""
+            This 5-minute psychological assessment will:
+            • Analyze your travel preferences across 7 dimensions
+            • Match you with your perfect travel personality
+            • Enable confidence-scored destination recommendations
+            
+            Your results will be saved to your profile for future trips!
+            """
+        )
+        
+        if st.button("🚀 Start the Quiz", type="primary", use_container_width=True):
+            st.session_state.quiz_started = True
+            st.session_state.current_step = 0
+            st.rerun()
     
     def _render_quiz_questions(self):
         """Render quiz questions based on current step"""
@@ -97,113 +225,134 @@ class VoyageAIApp:
         if st.session_state.current_step < len(questions):
             q = questions[st.session_state.current_step]
             
-            with st.form(f"question_{st.session_state.current_step}"):
-                st.markdown(f'<div class="question-text">{q["question"]}</div>', unsafe_allow_html=True)
-                
-                # Handle different question types
-                if q["type"] == "multiple_choice":
-                    selected = st.radio(
-                        "Select your preference:",
-                        options=q["options"],
-                        key=f"q_{st.session_state.current_step}"
-                    )
-                elif q["type"] == "slider":
-                    selected = st.slider(
-                        "Rate your preference (1-10):",
-                        min_value=1,
-                        max_value=10,
-                        value=5,
-                        key=f"q_{st.session_state.current_step}"
-                    )
-                elif q["type"] == "selectbox":
-                    selected = st.selectbox(
-                        "Choose one:",
-                        options=q["options"],
-                        key=f"q_{st.session_state.current_step}"
-                    )
-                
-                col1, col2, col3 = st.columns([1, 1, 1])
-                with col1:
-                    if st.session_state.current_step > 0:
-                        if st.form_submit_button("← Previous"):
-                            st.session_state.current_step -= 1
-                            st.rerun()
-                
-                with col3:
-                    submit_label = "Next →" if st.session_state.current_step < len(questions) - 1 else "Get Results"
-                    if st.form_submit_button(submit_label):
-                        st.session_state.user_responses[q["id"]] = selected
-                        st.session_state.current_step += 1
-    
-                    if st.session_state.current_step >= len(questions):
-                        st.session_state.quiz_completed = True
-                        # Analyze and store in session_state so it persists across reruns
-                        st.session_state.user_profile = self.dna_profiler.analyze_responses(st.session_state.user_responses)
-                        st.balloons() # Success celebration!
-                        st.rerun()
+            st.markdown(f'<div class="question-text">Question {st.session_state.current_step + 1} of {len(questions)}</div>', 
+                       unsafe_allow_html=True)
+            st.markdown(f'<div class="question-text">{q["question"]}</div>', unsafe_allow_html=True)
+            
+            # Handle different question types
+            response_key = f"q_{st.session_state.current_step}"
+            
+            if q["type"] == "multiple_choice":
+                selected = st.radio(
+                    "Select your preference:",
+                    options=q["options"],
+                    key=response_key,
+                    index=None,
+                    help="Choose the option that best describes you"
+                )
+            elif q["type"] == "slider":
+                selected = st.slider(
+                    "Rate your preference (1-10):",
+                    min_value=1,
+                    max_value=10,
+                    value=st.session_state.get(response_key, 5),
+                    key=response_key
+                )
+            elif q["type"] == "selectbox":
+                selected = st.selectbox(
+                    "Choose one:",
+                    options=q["options"],
+                    key=response_key,
+                    index=None,
+                    placeholder="Select an option"
+                )
+            
+            # Navigation buttons
+            col1, col2, col3 = st.columns([1, 2, 1])
+            
+            with col1:
+                if st.session_state.current_step > 0:
+                    if st.button("← Previous", use_container_width=True):
+                        self._handle_quiz_navigation("previous", questions, q)
+            
+            with col3:
+                button_text = "Next →" if st.session_state.current_step < len(questions) - 1 else "Get Results"
+                if st.button(button_text, type="primary", use_container_width=True):
+                    self._handle_quiz_navigation("next", questions, q)
     
     def _render_dna_results(self):
-        # Retrieve from session state
-        profile = st.session_state.get('user_profile')
-        if not profile: return
-
-        personality = profile['personality_type']
-    
-        # Designer Header
-        st.markdown(f"""
-            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; border-left: 5px solid #636efa;">
-                <h2 style="margin:0;">✨ Your Travel DNA: {personality}</h2>
-                <p style="color: #64748b;">Match Confidence: <b>{profile['match_score']}%</b></p>
-            </div>
-        """, unsafe_allow_html=True)
-
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            # Personality Details
-            info = TRAVEL_PERSONALITIES.get(personality, {})
-            st.write(f"**Traits:** {info.get('traits')}")
-            st.write(f"**Style:** {info.get('style')}")
+        """Render Travel DNA analysis results"""
+        if not self.user_profile:
+            return
+            
+        personality = self.user_profile['personality_type']
+        personality_info = TRAVEL_PERSONALITIES.get(personality, {})
         
-        with col2:
-            dims = profile['dimensions']
-            fig = go.Figure(data=go.Scatterpolar(
-                r=[dims['adventure'], dims['comfort'], dims['culture'], dims['luxury'], dims['nature']],
-                theta=['Adventure', 'Comfort', 'Culture', 'Luxury', 'Nature'],
-                fill='toself'
-            ))
-            fig.update_layout(height=250, margin=dict(l=20,r=20,t=20,b=20), polar=dict(radialaxis=dict(visible=True, range=[0, 10])))
-            st.plotly_chart(fig, use_container_width=True)
-
-
-        if st.button("🚀 Perfect! Now Plan My Trip"):
-            st.info("Switch to 'Trip Planner' tab above to continue!")
+        display_glass_card(
+            title=f"✨ Your Travel DNA: {personality}",
+            content=f"""
+            **Primary Traits**: {personality_info.get('traits', '')}
+            
+            **Travel Style**: {personality_info.get('style', '')}
+            
+            **Perfect For**: {personality_info.get('perfect_for', '')}
+            
+            **DNA Match Score**: {self.user_profile['match_score']}%
+            """
+        )
+        
+        # Visualize personality dimensions
+        dimensions = self.user_profile['dimensions']
+        fig = go.Figure(data=go.Scatterpolar(
+            r=[dimensions.get('adventure', 5), dimensions.get('comfort', 5), 
+               dimensions.get('culture', 5), dimensions.get('luxury', 5), 
+               dimensions.get('nature', 5), dimensions.get('urban', 5),
+               dimensions.get('social', 5)],
+            theta=['Adventure', 'Comfort', 'Culture', 'Luxury', 'Nature', 'Urban', 'Social'],
+            fill='toself',
+            line_color='#636efa'
+        ))
+        
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 10]
+                )),
+            showlegend=False,
+            height=350,
+            margin=dict(l=40, r=40, t=20, b=20)
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Retake quiz button
+        if st.button("🔄 Retake Quiz", use_container_width=True):
+            st.session_state.quiz_started = False
+            st.session_state.quiz_completed = False
+            st.session_state.user_responses = {}
+            st.session_state.current_step = 0
+            st.rerun()
     
     def _render_quiz_progress(self):
         """Render quiz progress indicator"""
         questions = self.dna_profiler.get_quiz_questions()
-        progress = (st.session_state.current_step / len(questions)) * 100
         
-        st.markdown("""
-        <div class="progress-container">
-            <div class="progress-text">Your Journey Profile</div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {}%"></div>
+        if st.session_state.quiz_started and not st.session_state.quiz_completed:
+            progress = ((st.session_state.current_step + 1) / len(questions)) * 100
+            
+            st.markdown("""
+            <div class="progress-container">
+                <div class="progress-text">Your Journey Profile</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {}%"></div>
+                </div>
+                <div class="progress-stats">
+                    <span>Question {}/{}</span>
+                    <span>{:.0f}% Complete</span>
+                </div>
             </div>
-            <div class="progress-stats">
-                <span>Question {}/{}</span>
-                <span>{:.0f}% Complete</span>
-            </div>
-        </div>
-        """.format(progress, st.session_state.current_step + 1, len(questions), progress), 
-        unsafe_allow_html=True)
+            """.format(progress, st.session_state.current_step + 1, len(questions), progress), 
+            unsafe_allow_html=True)
         
         # Display personality insights
         st.markdown('<div class="insights-title">📈 What Your DNA Reveals</div>', unsafe_allow_html=True)
         insights = [
             "Your travel preferences shape unique destination matches",
-            "We analyze 5 psychological dimensions for precision",
+            "We analyze 7 psychological dimensions for precision",
             "Real-time confidence scoring eliminates decision fatigue",
-            "Personalized trade-off analysis prevents travel regret"
+            "Personalized trade-off analysis prevents travel regret",
+            "Your profile is saved for future trip planning"
         ]
         
         for insight in insights:
@@ -305,6 +454,10 @@ class VoyageAIApp:
                             self.destinations, user_prefs
                         )
                         
+                        # Save to database if authenticated
+                        if st.session_state.get('authenticated', False):
+                            self._save_user_data()
+                        
                         st.success(f"Found {len(self.recommendations)} confident matches!")
                         st.session_state.show_recommendations = True
     
@@ -332,7 +485,7 @@ class VoyageAIApp:
                     <div class="recommendation-header">
                         <h3>{rec['name']}, {rec['country']}</h3>
                         <div class="confidence-badge" style="border-color: {confidence_color};">
-                            <span class="confidence-score">{rec['confidence_score']}%</span>
+                            <span class="confidence-score">{rec['confidence_score']:.0f}%</span>
                             <span class="confidence-label">Confidence</span>
                         </div>
                     </div>
@@ -342,10 +495,10 @@ class VoyageAIApp:
                     # Key metrics
                     cols = st.columns(4)
                     metrics = [
-                        ("💰 Budget Fit", f"${rec['budget_score']}/10", "#8b5cf6"),
-                        ("🌤️ Weather", f"{rec['weather_score']}/10", "#0ea5e9"),
-                        ("👥 Crowds", f"{rec['crowd_score']}/10", "#f59e0b"),
-                        ("🎭 DNA Match", f"{rec['dna_match']}/10", "#10b981")
+                        ("💰 Budget Fit", f"{rec['budget_score']:.1f}/10", "#8b5cf6"),
+                        ("🌤️ Weather", f"{rec['weather_score']:.1f}/10", "#0ea5e9"),
+                        ("👥 Crowds", f"{rec['crowd_score']:.1f}/10", "#f59e0b"),
+                        ("🎭 DNA Match", f"{rec['dna_match']:.1f}/10", "#10b981")
                     ]
                     
                     for idx, (label, value, color) in enumerate(metrics):
@@ -364,7 +517,7 @@ class VoyageAIApp:
                         content=f"""
                         **Best Season**: {rec['best_season']}
                         
-                        **Avg Cost**: ${rec['average_cost']}
+                        **Avg Cost**: ${rec['average_cost']:,}
                         
                         **Travel Time**: {rec['travel_time']} hours
                         
@@ -446,15 +599,47 @@ class VoyageAIApp:
                     
                     **Best Time**: {dest['best_season']}
                     
-                    **Avg Cost**: ${dest['average_cost']}
+                    **Avg Cost**: ${dest['average_cost']:,}
                     
                     **Highlights**: {dest['highlights'][0]}
                     """,
                     height="180px"
                 )
     
+    def render_user_profile(self):
+        """Render user profile in sidebar"""
+        if st.session_state.get('authenticated', False):
+            with st.sidebar:
+                st.markdown("---")
+                st.markdown(f"""
+                <div style="text-align: center; padding: 1rem;">
+                    <div style="font-size: 3rem;">👤</div>
+                    <h3>{st.session_state.username}</h3>
+                    <p style="color: #64748b;">Traveler since {datetime.now().strftime('%Y')}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if self.user_profile:
+                    st.markdown(f"""
+                    <div class="glass-card" style="padding: 1rem;">
+                        <strong>🧬 Travel DNA</strong><br>
+                        {self.user_profile['personality_type']}<br>
+                        <small>Match: {self.user_profile['match_score']}%</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+    
     def run(self):
         """Main application runner"""
+        # Check authentication first
+        if not check_authentication():
+            return
+        
+        # Render logout button
+        render_logout()
+        
+        # Render user profile in sidebar
+        self.render_user_profile()
+        
         # Render hero section
         self.render_hero_section()
         
@@ -472,20 +657,12 @@ class VoyageAIApp:
         with tab3:
             self.render_destination_explorer()
         
-        # Footer Section
+        # Footer
         st.markdown("---")
         st.markdown("""
-        <div class="footer" style="text-align: center; padding: 2rem; color: #64748b;">
-            <p style="margin-bottom: 0.5rem;"><b>VoyageAI</b> | Confidence-First Travel Discovery</p>
-            <p class="footer-note" style="font-size: 0.85rem; margin-bottom: 1rem;">
-                Using psychological profiling to eliminate decision anxiety since 2026
-            </p>
-            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 1rem;">
-                <span>Built by <b>Nishant Raj</b></span>
-                <a href="https://www.linkedin.com/in/the-nishant-raj-82972b208/" target="_blank" style="text-decoration: none; color: #0077b5; display: flex; align-items: center; gap: 5px;">
-                    <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="20" height="20">
-                </a>
-            </div>
+        <div class="footer">
+            <p>VoyageAI | Confidence-First Travel Discovery • Built for VOYAGEHACK 3.0</p>
+            <p class="footer-note">Using psychological profiling to eliminate decision anxiety since 2024</p>
         </div>
         """, unsafe_allow_html=True)
 
